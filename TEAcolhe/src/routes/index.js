@@ -8,7 +8,6 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
 // Import das Telas
 import InitialScreen from '../pages/InitialScreen';
 import LoginScreen from '../pages/LoginScreen';

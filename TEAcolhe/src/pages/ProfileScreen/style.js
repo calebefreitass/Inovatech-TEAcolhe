@@ -3,59 +3,163 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start', 
-    padding: 20,
-    paddingTop: 60, 
-    backgroundColor: '#F5F7FA', 
+    backgroundColor: '#FFF',
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 30,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
     color: '#2B6FD6',
-    marginBottom: 30,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+
+  // CARD DO TOPO
+  profileCard: {
+    backgroundColor: '#e1eefdff',
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 18,
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginBottom: 26,
+  },
+  avatarWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    marginBottom: 15,
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  profileTextArea: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#2B6FD6',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  profileSubtext: {
+    fontSize: 14,
+    color: '#7B8AA0',
     textAlign: 'center',
   },
-  // --- Novo Card de Informações ---
-  infoCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 40,
-    elevation: 2, // Sombra leve no Android
-    shadowColor: '#000', // Sombra no iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+
+  // SEÇÕES
+  section: {
+    marginBottom: 24,
   },
-  label: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    fontSize: 12,
-  },
-  value: {
+  sectionTitle: {
     fontSize: 18,
-    color: '#333',
-    fontWeight: '500',
-    marginBottom: 20, // Espaço entre os itens
+    fontWeight: 'bold',
+    color: '#2B6FD6',
+    marginBottom: 12,
   },
-  // --------------------------------
+
+  // CARD DAS LINHAS
+  infoRowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e1eefdff',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  connectedCard: {
+    backgroundColor: '#e1eefdff',
+  },
+  
+  // --- ÍCONE COM CÍRCULO (Para o Email) ---
+  infoIconCircle: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    backgroundColor: '#FFF', // Círculo Branco
+    borderRadius: 20,
+  },
+
+  // --- NOVO: ÍCONE SEM CÍRCULO (Para o Responsável) ---
+  transparentIconWrapper: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    // Sem background
+  },
+  // ----------------------------------------------------
+
+  activeIconContainer: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+  },
+  mailIcon: {
+    tintColor: '#2B6FD6',
+  },
+  logoProfileIcon: {
+    width: '100%',
+    height: '100%',
+  },
+  
+  infoTextWrapper: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: '#2B6FD6',
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2B6FD6',
+  },
+
+  // PILULA "CONECTADO"
+  statusPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: '#CAFFC6',
+  },
+  statusPillText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#2B6FD6',
+  },
+
+  // BOTÃO DE SAIR
   logoutButton: {
-    backgroundColor: '#FFCDD2',
-    borderWidth: 1,
-    borderColor: '#d32f2f',
-    borderRadius: 30,
+    marginTop: 20,
+    backgroundColor: '#FFF',
+    borderRadius: 24,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 'auto', // Empurra para o fundo se sobrar espaço
-    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#D32F2F'
   },
   logoutText: {
-    color: '#d32f2f',
-    fontWeight: 'bold',
-    fontSize: 16,
+    color: '#D32F2F',
+    fontWeight: '700',
+    fontSize: 15,
   },
 });
 
