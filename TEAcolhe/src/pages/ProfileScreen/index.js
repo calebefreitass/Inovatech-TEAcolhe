@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  Image,
-  ScrollView,
-} from 'react-native';
+import {View,Text,TouchableOpacity,Alert,ActivityIndicator,Image,ScrollView } from 'react-native';
 import styles from './style';
 
 // Firebase Imports

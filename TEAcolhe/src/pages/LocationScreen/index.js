@@ -16,6 +16,24 @@ const INITIAL_REGION = {
   longitudeDelta: 0.005,
 };
 
+// --- Funções Auxiliares de Cálculo (Haversine) ---
+function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // Raio da Terra em metros
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
+// -------------------------------------------------
+
 export default function LocationScreen() {
   const mapRef = useRef(null); 
   const [userData, setUserData] = useState(null); 
@@ -32,9 +50,11 @@ export default function LocationScreen() {
   const [isSavingGeofence, setIsSavingGeofence] = useState(false);
   const [isEditingGeofence, setIsEditingGeofence] = useState(false);
 
+  // NOVO: Estado de Segurança Local
+  const [statusSeguranca, setStatusSeguranca] = useState("DENTRO"); // "DENTRO" | "FORA"
+
   const userUID = auth.currentUser?.uid;
 
-  // 1. Permissão de Localização
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -42,20 +62,16 @@ export default function LocationScreen() {
     })();
   }, []);
 
-  // 2. Carregar dados do Tutor Logado
   useEffect(() => {
     if (!userUID) return;
     const docRef = doc(db, 'users', userUID);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setUserData(docSnap.data());
-      }
+      if (docSnap.exists()) setUserData(docSnap.data());
       setLoading(false);
     });
     return () => unsubscribe();
   }, [userUID]);
 
-  // 3. Carregar dados do Usuário Conectado (Filho/Aluno)
   useEffect(() => {
     if (userData?.usuarioConectado) {
       const connectedUserUID = userData.usuarioConectado;
@@ -67,7 +83,6 @@ export default function LocationScreen() {
     }
   }, [userData]); 
 
-  // 4. Ouvir Localização em Tempo Real (locations/{usuarioConectado})
   useEffect(() => {
     if (userData?.usuarioConectado) {
       const connectedUserUID = userData.usuarioConectado;
@@ -77,13 +92,11 @@ export default function LocationScreen() {
           const data = docSnap.data();
           setLocationData(data);
           
-          if (data.timestamp) { // Formata hora
-             // Verifica se é timestamp do Firestore ou número
+          if (data.timestamp) { 
              const date = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
              setLastUpdated(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
           }
 
-          // Reverse Geocode (Endereço)
           try {
             const addressResponse = await Location.reverseGeocodeAsync({
               latitude: data.latitude,
@@ -106,7 +119,6 @@ export default function LocationScreen() {
     }
   }, [userData]);
 
-  // 5. Ouvir Configuração da Cerca Virtual
   useEffect(() => {
     if (userData?.usuarioConectado) {
       const geofenceDocRef = doc(db, 'geofences', userData.usuarioConectado);
@@ -121,7 +133,27 @@ export default function LocationScreen() {
     }
   }, [userData]);
 
-  // 6. Ouvir Alertas de Segurança
+  // --- NOVO: MONITORAMENTO LOCAL DA CERCA ---
+  useEffect(() => {
+    if (locationData && geofenceCenter && geofenceRadius) {
+        const distancia = getDistanceFromLatLonInMeters(
+            locationData.latitude,
+            locationData.longitude,
+            geofenceCenter.latitude,
+            geofenceCenter.longitude
+        );
+
+        // Se a distância for maior que o raio, está FORA
+        if (distancia > geofenceRadius) {
+            setStatusSeguranca("FORA");
+        } else {
+            setStatusSeguranca("DENTRO");
+        }
+    }
+  }, [locationData, geofenceCenter, geofenceRadius]);
+
+  /* // --- DESATIVADO: OUVINTE DE ALERTAS DO BANCO ---
+  // Comentado para evitar travamento do App devido ao excesso de notificações
   useEffect(() => {
     if (userData?.usuarioConectado) {
       const alertsRef = collection(db, 'alerts');
@@ -129,16 +161,14 @@ export default function LocationScreen() {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
-            const alertData = change.doc.data();
-            Alert.alert("⚠️ ALERTA DE SEGURANÇA ⚠️", alertData.message || "O usuário saiu da área segura!", [
-                { text: "Entendi", onPress: async () => { await updateDoc(change.doc.ref, { read: true }); }}
-            ]);
+             // Alert.alert(...)
           }
         });
       });
       return () => unsubscribe();
     }
-  }, [userData]);
+  }, [userData]); 
+  */
 
   const handleCenterMap = () => {
     if (locationData && mapRef.current) {
@@ -190,6 +220,10 @@ export default function LocationScreen() {
       longitudeDelta: 0.005,
     } : INITIAL_REGION;
 
+  // Define cores e textos baseados no status
+  const statusColor = statusSeguranca === "FORA" ? "#FF4540" : "#4CAF50"; 
+  const statusText = statusSeguranca === "FORA" ? "⚠️ FORA DA ÁREA SEGURA" : "✅ DENTRO DA ÁREA SEGURA";
+
   return (
     <KeyboardAvoidingView 
       style={{ flex: 1 }} 
@@ -205,7 +239,23 @@ export default function LocationScreen() {
           </Text>
         </View>
 
-        <View style={styles.mapCard}>
+        {/* --- BARRA DE STATUS VISUAL (NOVA) --- */}
+        {!isEditingGeofence && geofenceCenter && (
+            <View style={{
+                backgroundColor: statusColor, 
+                padding: 12, 
+                borderRadius: 15, 
+                marginBottom: 15,
+                alignItems: 'center',
+                elevation: 3
+            }}>
+                <Text style={{color: '#FFF', fontWeight: 'bold', fontSize: 16}}>
+                    {statusText}
+                </Text>
+            </View>
+        )}
+
+        <View style={[styles.mapCard, { borderWidth: !isEditingGeofence && geofenceCenter ? 3 : 0, borderColor: statusColor }]}>
           <MapView
             ref={mapRef}
             style={styles.map}
@@ -223,7 +273,7 @@ export default function LocationScreen() {
              )}
              {geofenceCenter && (
                <>
-                 <Circle center={geofenceCenter} radius={geofenceRadius} strokeColor="rgba(46, 125, 50, 0.5)" fillColor="rgba(76, 175, 80, 0.2)" />
+                 <Circle center={geofenceCenter} radius={geofenceRadius} strokeColor={statusColor} fillColor={statusSeguranca === "FORA" ? "rgba(255, 69, 64, 0.2)" : "rgba(76, 175, 80, 0.2)"} />
                  {isEditingGeofence && <Marker coordinate={geofenceCenter} pinColor="green" />}
                </>
              )}
